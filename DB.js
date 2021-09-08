@@ -23,8 +23,8 @@ export function DB_init() {
 export async function addLink(msg, user, name) {
     let response = null;
     let players = await getJSON("https://hvz.rit.edu/api/v2/status/players");
-    let preCheck = await getUser(user.id);
-    if(preCheck != "User does not have a valid link"){
+    let preCheck = await getPlayer(user.id);
+    if(preCheck != "User does not have a player link"){
         msg.reply(`User is already linked to player "${preCheck}"`);
         return;
     }
@@ -53,14 +53,54 @@ export async function addLink(msg, user, name) {
 
 }
 
-export async function getUser(userID) {
+export async function getPlayer(userID) {
     let DBread;
     await accLink.sync();
     DBread = await accLink.findAll();
     for (let i = 0; i < DBread.length; i++) {
-        if (DBread[i].discordID = userID) {
+        if (DBread[i].discordID == userID) {
             return (DBread[i].playerName);
         }
     }
-    return ("User does not have a valid link");
+    return ("User does not have a player link");
+}
+
+export async function getUser(name){
+    let DBread;
+    await accLink.sync();
+    DBread = await accLink.findAll();
+    for (let i = 0; i < DBread.length; i++) {
+        if (DBread[i].playerName == name) {
+            return (DBread[i].discordID);
+        }
+    }
+    return ("Player does not have a discord link");
+}
+
+export async function deleteLink(msg, user){
+    let player = await getPlayer(user.id);
+    try{
+    accLink.destroy({where: {discordID: user.id}});
+    }
+    catch(e){
+        msg.reply(`Error: ${e}`);
+        return;
+    }
+    msg.reply(`Successfully unlinked ${user.username} from ${player}.`);
+}
+
+
+export async function whoIs(msg){
+    if(msg.content.length < 8){
+        msg.reply("Need a mention or name parameter");
+        return;
+    }
+    try{
+        let user = await msg.mentions.members[0].id;
+        let response = await getPlayer(user.id);
+     }
+     catch(e){
+        let name = msg.guild.members.fetch(msg.content.substring(7));
+        let response = await getUser(name);
+     }
 }

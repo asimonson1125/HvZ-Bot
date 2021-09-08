@@ -1,7 +1,7 @@
 import { getJSON } from './APIhandler.js'
 import { token } from './auth.js'
 import { Client, Intents } from 'discord.js';
-import { DB_init, getUser, addLink } from './DB.js';
+import { DB_init, whoIs, addLink, deleteLink } from './DB.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 /* ------------------------------------------------------------
@@ -29,13 +29,22 @@ client.on('messageCreate', msg => {
       playerStatus(msg, name);
    }
 
-   else if (msg.content.startsWith("~addLink ")) {
-      let name = msg.content.substring(msg.content.indexOf('"') + 1, msg.content.length - 1);
+   else if (msg.content.startsWith("~link ")) {
+      let name = msg.content.substring(6, msg.content.length);
       addLink(msg, msg.author, name);
    }
 
+else if (msg.content.startsWith("~unlink")){
+   if(msg.content.indexOf("<") != -1){
+      //identify user from guild and unlink them
+   }
+   else{ //Unlink self
+      deleteLink(msg, msg.author);
+   }
+}
+
    else if (msg.content.startsWith("~whoIs ")) {
-      //do shit
+      whoIs(msg);
    }
 });
 
