@@ -22,38 +22,53 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', msg => {
-   if (msg.author.bot || !msg.guild) return;
-
-   if (msg.content.startsWith("~status ")) {
-      if (msg.content.indexOf('<') != -1) {
-         statusByDiscord(msg, msg.mentions.members.first());
+   try {
+      if (msg.author.bot || !msg.guild) return;
+      if (msg.member.permissionsIn(msg.channel).has("ADMINISTRATOR")) {
+         if (msg.content.startsWith("~link ") && msg.content.indexOf("<") != -1) { //input MUST have name exactly one space after mention.  Could fix, too lazy.
+            try {
+               addLink(msg, msg.mentions.members.first().user, msg.content.substring(msg.content.indexOf(">") + 2));
+            }
+            catch (e) {
+               msg.reply(`Error: ${e}`);
+            }
+            return;
+         }
+         if (msg.content.startsWith("~unlink ") && msg.content.indexOf("<") != -1) {
+            deleteLink(msg, msg.mentions.members.first().user);
+            return;
+         }
       }
-      else {
-         let name = msg.content.substring(msg.content.substring(8));
-         playerStatus(msg, name);
-      }
-   }
 
-   else if (msg.content.startsWith("~link ")) {
-      let name = msg.content.substring(6);
-      addLink(msg, msg.author, name);
-   }
-
-   else if (msg.content.startsWith("~unlink")) {
-      if (msg.content.indexOf("<") != -1) {
-         deleteLink(msg, msg.content.mentions[0]);
+      if (msg.content.startsWith("~status ")) {
+         if (msg.content.indexOf('<') != -1) {
+            statusByDiscord(msg, msg.mentions.members.first());
+         }
+         else {
+            let name = msg.content.substring(msg.content.substring(8));
+            playerStatus(msg, name);
+         }
       }
-      else { //Unlink self
+
+      else if (msg.content.startsWith("~link ")) {
+         let name = msg.content.substring(6);
+         addLink(msg, msg.author, name);
+      }
+
+      else if (msg.content.startsWith("~unlink")) {  //Unlink self
          deleteLink(msg, msg.author);
       }
-   }
 
-   else if (msg.content.startsWith("~whoIs ")) {
-      whoIs(msg);
-   }
+      else if (msg.content.startsWith("~whoIs ")) {
+         whoIs(msg);
+      }
 
-   if (msg.content.substring(0, 11) == "~impossible") {
-      msg.channel.send("​​​​");
+      if (msg.content.substring(0, 11) == "~impossible") {
+         msg.channel.send("​​​​");
+      }
+   }
+   catch (e) {
+      msg.reply(`UNCAUGHT ERROR: ${e}`);
    }
 });
 

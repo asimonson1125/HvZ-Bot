@@ -102,6 +102,10 @@ export async function whoIs(msg){
     try{
         let user = msg.mentions.members.first();
         let response = await getPlayer(user.id);
+        if (response == "User does not have a player link"){
+            msg.reply(response + ".");
+            return;
+        }
         msg.reply(`${user.toString()} is connected to ${response}`);
      }
      catch(e){
