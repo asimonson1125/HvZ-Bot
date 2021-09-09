@@ -25,12 +25,12 @@ client.on('messageCreate', msg => {
    if (msg.author.bot || !msg.guild) return;
 
    if (msg.content.startsWith("~status ")) {
-      let name = msg.content.substring(msg.content.indexOf('"') + 1, msg.content.length - 1);
+      let name = msg.content.substring(msg.content.substring(8));
       playerStatus(msg, name);
    }
 
    else if (msg.content.startsWith("~link ")) {
-      let name = msg.content.substring(6, msg.content.length);
+      let name = msg.content.substring(6);
       addLink(msg, msg.author, name);
    }
 
