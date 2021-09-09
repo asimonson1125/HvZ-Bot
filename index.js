@@ -51,6 +51,10 @@ client.on('messageCreate', msg => {
    else if (msg.content.startsWith("~whoIs ")) {
       whoIs(msg);
    }
+
+   if (msg.content.substring(0, 11) == "~impossible") {
+      msg.channel.send("​​​​");
+   }
 });
 
 
