@@ -1,7 +1,7 @@
-import { getJSON } from './APIhandler.js'
 import { token } from './auth.js'
+import { DB_init, whoIs, addLink, deleteLink, getPlayer } from './DB.js';
+import { statusByDiscord, playerStatus } from './asyncHandler.js'
 import { Client, Intents } from 'discord.js';
-import { DB_init, whoIs, addLink, deleteLink } from './DB.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 /* ------------------------------------------------------------
@@ -25,8 +25,13 @@ client.on('messageCreate', msg => {
    if (msg.author.bot || !msg.guild) return;
 
    if (msg.content.startsWith("~status ")) {
-      let name = msg.content.substring(msg.content.substring(8));
-      playerStatus(msg, name);
+      if (msg.content.indexOf('<') != -1) {
+         statusByDiscord(msg, msg.mentions.members.first());
+      }
+      else {
+         let name = msg.content.substring(msg.content.substring(8));
+         playerStatus(msg, name);
+      }
    }
 
    else if (msg.content.startsWith("~link ")) {
@@ -34,29 +39,20 @@ client.on('messageCreate', msg => {
       addLink(msg, msg.author, name);
    }
 
-else if (msg.content.startsWith("~unlink")){
-   if(msg.content.indexOf("<") != -1){
-      deleteLink(msg, msg.content.mentions[0]);
+   else if (msg.content.startsWith("~unlink")) {
+      if (msg.content.indexOf("<") != -1) {
+         deleteLink(msg, msg.content.mentions[0]);
+      }
+      else { //Unlink self
+         deleteLink(msg, msg.author);
+      }
    }
-   else{ //Unlink self
-      deleteLink(msg, msg.author);
-   }
-}
 
    else if (msg.content.startsWith("~whoIs ")) {
       whoIs(msg);
    }
 });
 
-async function playerStatus(msg, user) {
-   let players = await getJSON("https://hvz.rit.edu/api/v2/status/players");
-   for (let i = 0; i < players.players.length; i++) {
-      if (players.players[i].name == user) {
-         msg.reply(user + " is part of team " + players.players[i].team);
-         break;
-      }
-   }
-}
 
 
 client.login(token);
