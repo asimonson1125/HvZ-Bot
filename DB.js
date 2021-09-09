@@ -79,6 +79,10 @@ export async function getUser(name){
 
 export async function deleteLink(msg, user){
     let player = await getPlayer(user.id);
+    if(player == "User does not have a player link"){
+        msg.reply(`${user.username} is not linked to a player.`);
+        return;
+    }
     try{
     accLink.destroy({where: {discordID: user.id}});
     }
@@ -96,11 +100,18 @@ export async function whoIs(msg){
         return;
     }
     try{
-        let user = await msg.mentions.members[0].id;
+        let user = msg.mentions.members.first();
         let response = await getPlayer(user.id);
+        msg.reply(`${user.toString()} is connected to ${response}`);
      }
      catch(e){
-        let name = msg.guild.members.fetch(msg.content.substring(7));
+        let name = msg.content.substring(7);
         let response = await getUser(name);
+        if(response == "Player does not have a discord link"){
+            msg.reply(response + ".");
+            return;
+        }
+        response = await msg.guild.members.fetch(response);
+        msg.reply(`${msg.content.substring(7)} is connected to ${response.toString()}.`);
      }
 }

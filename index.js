@@ -36,7 +36,7 @@ client.on('messageCreate', msg => {
 
 else if (msg.content.startsWith("~unlink")){
    if(msg.content.indexOf("<") != -1){
-      //identify user from guild and unlink them
+      deleteLink(msg, msg.content.mentions[0]);
    }
    else{ //Unlink self
       deleteLink(msg, msg.author);
