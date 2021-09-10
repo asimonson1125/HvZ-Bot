@@ -1,5 +1,6 @@
 import { getJSON } from './APIhandler.js'
 import { getPlayer } from './DB.js';
+import { MessageEmbed } from 'discord.js';
 // import { playerStatus } from './asyncHandler.js'
 
 export function binarySearch(array, pred) {
@@ -23,9 +24,25 @@ export async function statusByDiscord(msg, user){
 export async function playerStatus(msg, user) {
     let players = await getJSON("https://hvz.rit.edu/api/v2/status/players");
     for (let i = 0; i < players.players.length; i++) {
-       if (players.players[i].name == user) {
-          msg.reply(user + " is part of team " + players.players[i].team);
-          break;
+        if (players.players[i].name == user) {
+            let embedColor = "";
+            let embedDescription = 'Team: '+players.players[i].team+'\nTags: '+players.players[i].humansTagged+' \nBadges: '+players.players[i].badges;
+            let embedFooter = 'ID# '+players.players[i].id;
+            if(players.players[i].team.startsWith("human")) {
+                embedColor = '#E51400'
+            } else {
+                embedColor = '#60A917'
+            }
+            const playerStatusEmbed = new MessageEmbed()
+            .setColor(embedColor)
+            .setTitle(user)
+            .setURL('https://hvz.rit.edu/players/', players.players[i].id)
+            .setAuthor('Player Status')
+            .setDescription(embedDescription)
+            .setFooter(embedFooter)
+            .setTimestamp()
+            msg.channel.send({ embeds: [playerStatusEmbed] });
+            break;
        }
     }
  }
