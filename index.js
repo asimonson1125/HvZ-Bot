@@ -43,10 +43,12 @@ client.on('messageCreate', msg => {
          if(msg.content.startsWith("~set ")){
             let words = msg.content.split("-");
             setRoles(msg, words);
+            return;
          }
 
          if(msg.content.startsWith("~printRoles")){
             printGuildRoles(msg);
+            return;
          }
       }
 
@@ -73,7 +75,7 @@ client.on('messageCreate', msg => {
          whoIs(msg);
       }
 
-      if (msg.content.substring(0, 11) == "~impossible") {
+      else if (msg.content.substring(0, 11) == "~impossible") {
          msg.channel.send("​​​​");
       }
    }
