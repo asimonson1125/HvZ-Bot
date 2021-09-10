@@ -1,5 +1,5 @@
 import { token } from './auth.js'
-import { DB_init, whoIs, addLink, deleteLink, getPlayer } from './DB.js';
+import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles } from './DB.js';
 import { statusByDiscord, playerStatus } from './asyncHandler.js'
 import { Client, Intents } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
@@ -34,9 +34,19 @@ client.on('messageCreate', msg => {
             }
             return;
          }
+
          if (msg.content.startsWith("~unlink ") && msg.content.indexOf("<") != -1) {
             deleteLink(msg, msg.mentions.members.first().user);
             return;
+         }
+
+         if(msg.content.startsWith("~set ")){
+            let words = msg.content.split("-");
+            setRoles(msg, words);
+         }
+
+         if(msg.content.startsWith("~printRoles")){
+            printGuildRoles(msg);
          }
       }
 
