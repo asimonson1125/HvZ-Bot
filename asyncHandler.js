@@ -36,9 +36,18 @@ export async function playerStatus(msg, user) {
     for (let i = 0; i < players.length; i++) {
         if (players[i].name == user) {
             let embedColor = "";
-            let embedDescription = 'Team: ' + players[i].team + '\nTags: ' + players[i].humansTagged + ' \nBadges: ' + players[i].badges;
+            let embedDescription = 'Team: ' + players[i].team + '\nTags: ' + players[i].humansTagged;
+            if(players[i].access != 'player') {
+                embedDescription += '\nRole: ' + players[i].access
+            }
             let embedFooter = 'ID# ' + players[i].id;
-            if (players[i].team.startsWith("human")) {
+            if(players[i].access.startsWith("superadmin")) {
+                embedColor = '#E3C800'
+            } else if(players[i].access.startsWith("admin")) {
+                embedColor = '#E3C800'
+            } else if(players[i].access.startsWith("mod")) {
+                embedColor = '#1BA1E2'
+            } else if (players[i].team.startsWith("human")) {
                 embedColor = '#E51400'
             } else {
                 embedColor = '#60A917'
