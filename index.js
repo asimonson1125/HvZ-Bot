@@ -1,6 +1,6 @@
 import { token } from './auth.js'
 import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles } from './DB.js';
-import { statusByDiscord, playerStatus } from './asyncHandler.js'
+import { statusByDiscord, playerStatus, createScoreboard } from './asyncHandler.js'
 import { Client, Intents, MessageEmbed } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 /* ------------------------------------------------------------
@@ -48,6 +48,10 @@ client.on('messageCreate', msg => {
          if(msg.content.startsWith("~printRoles")){
             printGuildRoles(msg);
             return;
+         }
+
+         if(msg.content.startsWith("~score")){
+            createScoreboard(msg);
          }
       }
 
