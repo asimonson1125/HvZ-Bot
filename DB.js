@@ -1,6 +1,7 @@
 import Sequelize from 'sequelize';
 import { SQLUser, SQLPass } from './auth.js'
 import { getJSON } from './APIhandler.js'
+import { fetchAllPlayers } from './asyncHandler.js';
 
 let accLink;
 let guilds;
@@ -36,9 +37,7 @@ export function DB_init() {
 
 export async function addLink(msg, user, name) {
     let response = null;
-    let players = await getJSON("https://hvz.rit.edu/api/v2/status/players");
-    let mods = await getJSON("https://hvz.rit.edu/api/v2/status/moderators");
-    let combined = players.players.concat(mods.players);
+    let combined = await fetchAllPlayers();
     let preCheck = await getPlayer(user.id);
     if (preCheck != "User does not have a player link") {
         msg.reply(`User is already linked to player "${preCheck}"`);

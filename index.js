@@ -56,7 +56,7 @@ client.on('messageCreate', msg => {
             statusByDiscord(msg, msg.mentions.members.first());
          }
          else {
-            let name = msg.content.substring(msg.content.substring(8));
+            let name = msg.content.substring(8);
             playerStatus(msg, name);
          }
       }
