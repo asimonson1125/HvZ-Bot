@@ -53,14 +53,16 @@ export async function playerStatus(msg, user) {
                 embedColor = '#60A917'
             }
             const playerStatusEmbed = new MessageEmbed()
-                .setColor(embedColor)
-                .setTitle(user)
-                .setURL('https://hvz.rit.edu/players/' + players[i].id)
-                .setAuthor('Player Status')
-                .setDescription(embedDescription)
-                .setImage('https://www.hvz.rit.edu/api/v2/avatar/' + players[i].id)
-                .setFooter(embedFooter)
-                .setTimestamp()
+            .setColor(embedColor)
+            .setTitle(user)
+            .setURL('https://hvz.rit.edu/players/', players[i].id)
+            .setAuthor('Player Status')
+            .setDescription(embedDescription)
+            /*for (let j = 0; j < players.length; j++) {
+                .addField( name: players.players[i].badges[j].name, value: players.players[i].badges[j].description,    false )
+            }*/
+            .setFooter(embedFooter)
+            .setTimestamp()
             msg.reply({ embeds: [playerStatusEmbed] });
             return;
         }
