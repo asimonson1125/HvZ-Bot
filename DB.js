@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize';
 import { SQLUser, SQLPass } from './auth.js'
 import { getJSON } from './APIhandler.js'
-import { fetchAllPlayers } from './asyncHandler.js';
+import { fetchAllPlayers, playerStatus } from './asyncHandler.js';
 
 let accLink;
 let guilds;
@@ -149,7 +149,7 @@ export async function getGuildRoles(guildID) {
 
 export async function deleteGuildDB(guildID) {
     let response = await getGuildRoles(guildID);
-    if(response == "Server has not set HvZ roles"){return;}
+    if (response == "Server has not set HvZ roles") { return; }
     try {
         guilds.destroy({ where: { guildID: guildID } });
     }
@@ -180,12 +180,62 @@ export async function setRoles(msg, words) {
     msg.reply(`Successfully set server HvZ Human (${words[1]}) and HvZ Zombie (${words[2]}) roles.`);
 }
 
-export async function printGuildRoles(msg){
+export async function printGuildRoles(msg) {
     let response = await getGuildRoles(msg.guild.id);
-    if(response == "Server has not set HvZ roles"){
+    if (response == "Server has not set HvZ roles") {
         msg.reply(response + ".");
         return;
     }
     response = response.split("&");
     msg.reply(`Roles for server "${msg.guild.name}":\nHumans role: ${response[0]}\nZombies role: ${response[1]}`);
+}
+
+export async function updateRole(msg, user) {
+    let name = await getPlayer(user.id);
+    if (name == "User does not have a player link") {
+        msg.reply(name + ".");
+        return;
+    }
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        msg.reply(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    for (let i = 0; i < players.length; i++) {
+        if (players[i].name == name) {
+            toGet = players[i].team;
+            break;
+        }
+    }
+    let role = false;
+    let toDelete = false;
+    if (toGet == 'zombie') {
+        role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+    }
+    else if (toGet == 'human') {
+        role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+    }
+    if (user.roles.cache.find(r => r == toDelete)) {
+        await user.roles.remove(toDelete);
+    }
+    if (role) {
+        try {
+            if (!user.roles.cache.find(r => r == role)) {
+                await user.roles.add(role);
+            }
+        }
+        catch (e) {
+            msg.reply(`Error while assigning role '${role}': ${e}`)
+            return;
+        }
+        msg.reply("Roles updated!");
+    }
+    else {
+        msg.reply(`Role '${guildRoles}' not found.`);
+    }
 }

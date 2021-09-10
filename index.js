@@ -1,5 +1,5 @@
 import { token } from './auth.js'
-import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles } from './DB.js';
+import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles, updateRole } from './DB.js';
 import { statusByDiscord, playerStatus, createScoreboard } from './asyncHandler.js'
 import { Client, Intents, MessageEmbed } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
@@ -78,11 +78,15 @@ client.on('messageCreate', msg => {
          whoIs(msg);
       }
 
+      else if (msg.content.startsWith == "~update"){
+         updateRole(msg, msg.member);
+      }
+
       else if (msg.content.substring(0, 11) == "~impossible") {
          msg.channel.send("​​​​");
       }
 
-      if (msg.content.startsWith("ping")) {
+      else if (msg.content.startsWith("ping")) {
          msg.reply("Pong!");
       }
    }
