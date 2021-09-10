@@ -1,9 +1,8 @@
 import { token } from './auth.js'
 import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles } from './DB.js';
 import { statusByDiscord, playerStatus } from './asyncHandler.js'
-import { Client, Intents } from 'discord.js';
+import { Client, Intents, MessageEmbed } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
-
 /* ------------------------------------------------------------
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 RENEW YOUR DAMN CERTIFICATE!!!!!!!!!!!!!!!!
@@ -31,7 +30,7 @@ client.on('messageCreate', msg => {
             }
             catch (e) {
                msg.reply(`Error: ${e}`);
-            }
+            }   
             return;
          }
 
@@ -75,6 +74,10 @@ client.on('messageCreate', msg => {
 
       if (msg.content.substring(0, 11) == "~impossible") {
          msg.channel.send("​​​​");
+      }
+
+      if (msg.content.startsWith("ping")) {
+         msg.reply("Pong!");
       }
    }
    catch (e) {
