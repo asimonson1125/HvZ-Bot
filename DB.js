@@ -191,14 +191,15 @@ export async function printGuildRoles(msg) {
 }
 
 export async function updateRole(msg, user) {
+    let responder = await msg.reply("On it.");
     let name = await getPlayer(user.id);
     if (name == "User does not have a player link") {
-        msg.reply(name + ".");
+        responder.edit(name + ".");
         return;
     }
     let guildRoles = await getGuildRoles(msg.guild.id);
     if (guildRoles == "Server has not set HvZ roles") {
-        msg.reply(name + ".");
+        responder.edit(name + ".");
         return;
     }
     guildRoles = guildRoles.split("&");
@@ -230,12 +231,66 @@ export async function updateRole(msg, user) {
             }
         }
         catch (e) {
-            msg.reply(`Error while assigning role '${role}': ${e}`)
+            responder.edit(`Error while assigning role '${role}': ${e}`)
             return;
         }
-        msg.reply("Roles updated!");
+        responder.edit("Your roles have been updated!");
     }
     else {
-        msg.reply(`Role '${guildRoles}' not found.`);
+        responder.edit(`Role '${guildRoles}' not found.`);
     }
+}
+
+export async function updateAllRoles(msg) {
+    let responder = await msg.reply("On it.");
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        responder.edit(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    let user;
+    let toUpdate = [];
+    for (let i = 0; i < players.length; i++) {
+        user = await getUser(players[i].name);
+        if (user != "Player does not have a discord link") {
+            user = await msg.guild.members.fetch(user);
+            if (user != false) {
+                toUpdate.push([user,players[i]]);
+            }
+        }
+    }
+    let role, toDelete;
+    for (let i = 0; i < toUpdate.length; i++) {
+        role = false;
+        toDelete = false;
+        if (toUpdate[i][1].team == 'zombie') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        }
+        else if (toUpdate[i][1].team == 'human') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        }
+        if (toUpdate[i][0].roles.cache.find(r => r == toDelete)) {
+            await toUpdate[i][0].roles.remove(toDelete);
+        }
+        if (role) {
+            try {
+                if (!toUpdate[i][0].roles.cache.find(r => r == role)) {
+                    await toUpdate[i][0].roles.add(role);
+                }
+            }
+            catch (e) {
+                responder.edit(`Error while assigning role '${role}': ${e}`)
+                return;
+            }
+        }
+        else {
+            responder.edit(`Role '${guildRoles}' not found.`);
+        }
+    }
+    responder.edit("Roles updated!");
 }
