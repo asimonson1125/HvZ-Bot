@@ -30,7 +30,7 @@ client.on('messageCreate', msg => {
             }
             catch (e) {
                msg.reply(`Error: ${e}`);
-            }   
+            }
             return;
          }
 
@@ -39,30 +39,49 @@ client.on('messageCreate', msg => {
             return;
          }
 
-         else if(msg.content.startsWith("~set ")){
+         else if (msg.content.startsWith("~set ")) {
             let words = msg.content.split("-");
             setRoles(msg, words);
             return;
          }
 
-         else if(msg.content.startsWith("~updateAll")){
+         else if (msg.content.startsWith("~updateAll")) {
             updateAllRoles(msg);
             return;
          }
 
-         else if(msg.content.startsWith("~printRoles")){
+         else if (msg.content.startsWith("~printRoles")) {
             printGuildRoles(msg);
             return;
          }
 
-         else if(msg.content.startsWith("~score")){
+         else if (msg.content.startsWith("~score")) {
             createScoreboard(msg);
+         }
+
+         else if (msg.content.startsWith("~adminHelp")) {
+            const helpEmbed = new MessageEmbed()
+               .setColor('#FFFFFF')
+               .setTitle("Admin Help:")
+               .addFields(
+                  { name: "~link @tag [name]", value: "Links a user's discord account to a registered HvZ player." },
+                  { name: "~unlink @tag", value: "Removes link between your a user's account and their registered HvZ player" },
+                  { name: "~set -[HumansRoleName]-[ZombiesRoleName]", value: "Sets the HvZ roles for the server. ie. `~set -Human-Zombie`" },
+                  { name: "~printRoles", value: "Replys with this server's set HvZ roles.  If role names are changed, you will need to ~set them again." },
+                  { name: "~updateAll", value: "Updates discord roles for all users with linked HvZ players based on their HvZ player status (human or zombie)." },
+                  { name: "~score", value: "Responds with a game status feed that is automatically updated every 15 minutes." }
+               )
+               .setFooter("RIT_HvZ bot by Andrew Simonson and [bok]")
+            msg.reply({ embeds: [helpEmbed] });
          }
       }
 
-      if (msg.content.startsWith("~status ")) {
+      if (msg.content.startsWith("~status")) {
          if (msg.content.indexOf('<') != -1) {
             statusByDiscord(msg, msg.mentions.members.first());
+         }
+         else if (msg.content.length < 10) {
+            statusByDiscord(msg, msg.author);
          }
          else {
             let name = msg.content.substring(8);
@@ -83,7 +102,7 @@ client.on('messageCreate', msg => {
          whoIs(msg);
       }
 
-      else if (msg.content.substring(0,7) == "~update"){
+      else if (msg.content.substring(0, 7) == "~update") {
          updateRole(msg, msg.member);
       }
 
@@ -93,6 +112,21 @@ client.on('messageCreate', msg => {
 
       else if (msg.content.startsWith("ping")) {
          msg.reply("Pong!");
+      }
+
+      else if (msg.content.startsWith("~help")) {
+         const helpEmbed = new MessageEmbed()
+            .setColor('#000000')
+            .setTitle("Help:")
+            .addFields(
+               { name: "~link [name]", value: "Links your discord account to a registered HvZ player." },
+               { name: "~unlink", value: "Removes link between your discord account and your registered HvZ player" },
+               { name: "~status", value: "Displays your linked player status.  Optional param: (@user or registered name)" },
+               { name: "~whoIs", value: "Takes @tag or player name as parameter, returns player-discord link." },
+               { name: "~update", value: "Updates your discord roles based on your HvZ player status (human or zombie)." }
+            )
+            .setFooter("RIT_HvZ bot by Andrew Simonson and [bok]")
+         msg.reply({ embeds: [helpEmbed] });
       }
    }
    catch (e) {
