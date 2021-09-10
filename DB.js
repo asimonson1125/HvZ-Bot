@@ -37,13 +37,15 @@ export function DB_init() {
 export async function addLink(msg, user, name) {
     let response = null;
     let players = await getJSON("https://hvz.rit.edu/api/v2/status/players");
+    let mods = await getJSON("https://hvz.rit.edu/api/v2/status/moderators");
+    let combined = players.players.concat(mods.players);
     let preCheck = await getPlayer(user.id);
     if (preCheck != "User does not have a player link") {
         msg.reply(`User is already linked to player "${preCheck}"`);
         return;
     }
-    for (let i = 0; i < players.players.length; i++) {
-        if (players.players[i].name == name) {
+    for (let i = 0; i < combined.length; i++) {
+        if (combined[i].name == name) {
             response = await msg.reply("player found in database, adding link");
             break;
         }
