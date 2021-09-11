@@ -1,10 +1,11 @@
 import Sequelize from 'sequelize';
 import { SQLUser, SQLPass } from './auth.js'
 import { getJSON } from './APIhandler.js'
-import { fetchAllPlayers } from './asyncHandler.js';
+import { fetchAllPlayers, playerStatus, setScoreboard } from './asyncHandler.js';
 
 let accLink;
 let guilds;
+let scoreboards;
 
 export function DB_init() {
     const linkSequelize = new Sequelize('database', SQLUser, SQLPass, {
@@ -31,6 +32,20 @@ export function DB_init() {
     guilds = guildSequelize.define('accLink', {
         guildID: Sequelize.STRING,
         roles: Sequelize.STRING
+    });
+
+    const scoreSequelize = new Sequelize('database', SQLUser, SQLPass, {
+        host: 'localhost',
+        dialect: 'sqlite',
+        logging: false,
+        // SQLite only
+        storage: 'scoreboards.sqlite',
+    });
+
+    scoreboards = scoreSequelize.define('scoreboards', {
+        guildID: Sequelize.STRING,
+        channelID: Sequelize.STRING,
+        messageID: Sequelize.STRING
     });
 }
 
@@ -149,7 +164,7 @@ export async function getGuildRoles(guildID) {
 
 export async function deleteGuildDB(guildID) {
     let response = await getGuildRoles(guildID);
-    if(response == "Server has not set HvZ roles"){return;}
+    if (response == "Server has not set HvZ roles") { return; }
     try {
         guilds.destroy({ where: { guildID: guildID } });
     }
@@ -180,12 +195,196 @@ export async function setRoles(msg, words) {
     msg.reply(`Successfully set server HvZ Human (${words[1]}) and HvZ Zombie (${words[2]}) roles.`);
 }
 
-export async function printGuildRoles(msg){
+export async function printGuildRoles(msg) {
     let response = await getGuildRoles(msg.guild.id);
-    if(response == "Server has not set HvZ roles"){
+    if (response == "Server has not set HvZ roles") {
         msg.reply(response + ".");
         return;
     }
     response = response.split("&");
     msg.reply(`Roles for server "${msg.guild.name}":\nHumans role: ${response[0]}\nZombies role: ${response[1]}`);
+}
+
+export async function updateRole(msg, user) {
+    let responder = await msg.reply("On it.");
+    let name = await getPlayer(user.id);
+    if (name == "User does not have a player link") {
+        responder.edit(name + ".");
+        return;
+    }
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        responder.edit(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    for (let i = 0; i < players.length; i++) {
+        if (players[i].name == name) {
+            toGet = players[i].team;
+            break;
+        }
+    }
+    let role = false;
+    let toDelete = false;
+    if (toGet == 'zombie') {
+        role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+    }
+    else if (toGet == 'human') {
+        role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+    }
+    if (user.roles.cache.find(r => r == toDelete)) {
+        await user.roles.remove(toDelete);
+    }
+    if (role) {
+        try {
+            if (!user.roles.cache.find(r => r == role)) {
+                await user.roles.add(role);
+            }
+        }
+        catch (e) {
+            responder.edit(`Error while assigning role '${role}': ${e}`)
+            return;
+        }
+        responder.edit("Your roles have been updated!");
+    }
+    else {
+        responder.edit(`Role '${guildRoles}' not found.`);
+    }
+}
+
+export async function updateAllRoles(msg) {
+    let responder = await msg.reply("On it.");
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        responder.edit(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    let user;
+    let toUpdate = [];
+    for (let i = 0; i < players.length; i++) {
+        user = await getUser(players[i].name);
+        if (user != "Player does not have a discord link") {
+            user = await msg.guild.members.fetch(user);
+            if (user != false) {
+                toUpdate.push([user, players[i]]);
+            }
+        }
+    }
+    let role, toDelete;
+    for (let i = 0; i < toUpdate.length; i++) {
+        role = false;
+        toDelete = false;
+        if (toUpdate[i][1].team == 'zombie') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        }
+        else if (toUpdate[i][1].team == 'human') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        }
+        if (toUpdate[i][0].roles.cache.find(r => r == toDelete)) {
+            await toUpdate[i][0].roles.remove(toDelete);
+        }
+        if (role) {
+            try {
+                if (!toUpdate[i][0].roles.cache.find(r => r == role)) {
+                    await toUpdate[i][0].roles.add(role);
+                }
+            }
+            catch (e) {
+                responder.edit(`Error while assigning role '${role}': ${e}`)
+                return;
+            }
+        }
+        else {
+            responder.edit(`Role '${guildRoles}' not found.`);
+        }
+    }
+    responder.edit("Roles updated!");
+}
+
+export async function updateAllRolesSilent(msg) {
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        responder.edit(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    let user;
+    let toUpdate = [];
+    for (let i = 0; i < players.length; i++) {
+        user = await getUser(players[i].name);
+        if (user != "Player does not have a discord link") {
+            user = await msg.guild.members.fetch(user);
+            if (user != false) {
+                toUpdate.push([user, players[i]]);
+            }
+        }
+    }
+    let role, toDelete;
+    for (let i = 0; i < toUpdate.length; i++) {
+        role = false;
+        toDelete = false;
+        if (toUpdate[i][1].team == 'zombie') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        }
+        else if (toUpdate[i][1].team == 'human') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        }
+        if (toUpdate[i][0].roles.cache.find(r => r == toDelete)) {
+            await toUpdate[i][0].roles.remove(toDelete);
+        }
+        if (role) {
+            try {
+                if (!toUpdate[i][0].roles.cache.find(r => r == role)) {
+                    await toUpdate[i][0].roles.add(role);
+                }
+            }
+            catch (e) {
+                console.log(`Error while assigning role '${role}': ${e}`)
+                return;
+            }
+        }
+        else {
+            console.log(`Role '${guildRoles}' not found.`);
+        }
+    }
+}
+
+export async function saveScoreboard(msg) {
+    await scoreboards.sync();
+    let tracker = await scoreboards.create({
+        guildID: msg.guild.id,
+        channelID: msg.channel.id,
+        messageID: msg.id
+    });
+}
+
+export async function syncScoreboards(client) {
+    let msg, guild, channel;
+    let boards = [];
+    await scoreboards.sync();
+    let DBread = await scoreboards.findAll();
+    for (let i = 0; i < DBread.length; i++) {
+        guild = await client.guilds.cache.get(DBread[i].get('guildID'));
+        channel = await guild.channels.cache.get(DBread[i].get('channelID'));
+        try {
+            msg = await channel.messages.fetch(DBread[i].get('messageID'));
+        } catch (e) {
+            console.log("Invalid message id: " + DBread[i].get('messageID'));
+        }
+        boards.push(msg);
+    }
+    return(boards);
 }

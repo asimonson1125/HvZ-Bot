@@ -1,6 +1,6 @@
 import { token } from './auth.js'
-import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles } from './DB.js';
-import { statusByDiscord, playerStatus, createScoreboard } from './asyncHandler.js'
+import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles, updateRole, updateAllRoles, syncScoreboards } from './DB.js';
+import { statusByDiscord, playerStatus, createScoreboard, updateBoards } from './asyncHandler.js'
 import { Client, Intents, MessageEmbed } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 /* ------------------------------------------------------------
@@ -16,6 +16,7 @@ DB_init()
 
 client.on('ready', () => {
    console.log(`Logged in as ${client.user.tag}!`);
+   setInterval(updater,900000);
    client.user.setActivity('the apocalypse', { type: 'WATCHING' });
    client.user.setStatus('idle');
 });
@@ -30,34 +31,58 @@ client.on('messageCreate', msg => {
             }
             catch (e) {
                msg.reply(`Error: ${e}`);
-            }   
+            }
             return;
          }
 
-         if (msg.content.startsWith("~unlink ") && msg.content.indexOf("<") != -1) {
+         else if (msg.content.startsWith("~unlink ") && msg.content.indexOf("<") != -1) {
             deleteLink(msg, msg.mentions.members.first().user);
             return;
          }
 
-         if(msg.content.startsWith("~set ")){
+         else if (msg.content.startsWith("~set ")) {
             let words = msg.content.split("-");
             setRoles(msg, words);
             return;
          }
 
-         if(msg.content.startsWith("~printRoles")){
+         else if (msg.content.startsWith("~updateAll")) {
+            updateAllRoles(msg);
+            return;
+         }
+
+         else if (msg.content.startsWith("~printRoles")) {
             printGuildRoles(msg);
             return;
          }
 
-         if(msg.content.startsWith("~score")){
+         else if (msg.content.startsWith("~score")) {
             createScoreboard(msg);
+         }
+
+         else if (msg.content.startsWith("~adminHelp")) {
+            const helpEmbed = new MessageEmbed()
+               .setColor('#FFFFFF')
+               .setTitle("Admin Help:")
+               .addFields(
+                  { name: "~link @tag [name]", value: "Links a user's discord account to a registered HvZ player." },
+                  { name: "~unlink @tag", value: "Removes link between your a user's account and their registered HvZ player" },
+                  { name: "~set -[HumansRoleName]-[ZombiesRoleName]", value: "Sets the HvZ roles for the server. ie. `~set -Human-Zombie`" },
+                  { name: "~printRoles", value: "Replys with this server's set HvZ roles.  If role names are changed, you will need to ~set them again." },
+                  { name: "~updateAll", value: "Updates discord roles for all users with linked HvZ players based on their HvZ player status (human or zombie)." },
+                  { name: "~score", value: "Responds with a game status feed that is automatically updated every 15 minutes.  Also, updates all HvZ discord roles on this interval.  If there is no scoreboard in the server, roles will not be updated automatically." }
+               )
+               .setFooter("RIT_HvZ bot by Andrew Simonson and Henry Gelber")
+            msg.reply({ embeds: [helpEmbed] });
          }
       }
 
-      if (msg.content.startsWith("~status ")) {
+      if (msg.content.startsWith("~status")) {
          if (msg.content.indexOf('<') != -1) {
             statusByDiscord(msg, msg.mentions.members.first());
+         }
+         else if (msg.content.length < 10) {
+            statusByDiscord(msg, msg.author);
          }
          else {
             let name = msg.content.substring(8);
@@ -78,12 +103,31 @@ client.on('messageCreate', msg => {
          whoIs(msg);
       }
 
+      else if (msg.content.substring(0, 7) == "~update") {
+         updateRole(msg, msg.member);
+      }
+
       else if (msg.content.substring(0, 11) == "~impossible") {
          msg.channel.send("​​​​");
       }
 
-      if (msg.content.startsWith("ping")) {
+      else if (msg.content.startsWith("ping")) {
          msg.reply("Pong!");
+      }
+
+      else if (msg.content.startsWith("~help")) {
+         const helpEmbed = new MessageEmbed()
+            .setColor('#000000')
+            .setTitle("Help:")
+            .addFields(
+               { name: "~link [name]", value: "Links your discord account to a registered HvZ player." },
+               { name: "~unlink", value: "Removes link between your discord account and your registered HvZ player" },
+               { name: "~status [@tag or name]", value: "Displays your linked player status.  Optional param: (@user or registered name)" },
+               { name: "~whoIs [@tag or name]", value: "Takes @tag or player name as parameter, returns player-discord link." },
+               { name: "~update", value: "Updates your discord roles based on your HvZ player status (human or zombie)." }
+            )
+            .setFooter("RIT_HvZ bot by Andrew Simonson and Henry Gelber")
+         msg.reply({ embeds: [helpEmbed] });
       }
    }
    catch (e) {
@@ -91,6 +135,9 @@ client.on('messageCreate', msg => {
    }
 });
 
+function updater(){
+   updateBoards(client);
+}
 
 
 client.login(token);

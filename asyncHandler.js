@@ -1,5 +1,5 @@
 import { getJSON } from './APIhandler.js'
-import { getPlayer } from './DB.js';
+import { getPlayer, saveScoreboard, syncScoreboards, updateAllRolesSilent } from './DB.js';
 import { MessageEmbed } from 'discord.js';
 // import { playerStatus } from './asyncHandler.js'
 
@@ -83,11 +83,11 @@ function hexFromPercent(valNum) {
     return (hexValue);
 }
 
-export async function createScoreboard(msg) {
-    let time = await getJSON("https://hvz.rit.edu/api/v2/status/dates");
+
+
+export async function setScoreboard(msg,time,score){
     let endDate = new Date(time.end);
     let embedFooter = `Ending on: ${endDate}`;
-    let score = await getJSON("https://hvz.rit.edu/api/v2/status/score");
     let embedDescription = `Humans: ${score.humans}\nZombies: ${score.zombies}\n`;
     let humanPercentage = score.humans / (score.humans + score.zombies);
     let embedColor = `#${hexFromPercent(humanPercentage * 100)}${hexFromPercent((1 - humanPercentage) * 100)}00`
@@ -97,7 +97,7 @@ export async function createScoreboard(msg) {
     for(let i = 0; i<10-Math.round(humanPercentage*10); i++){
         embedDescription += "🟩"
     }
-    let playerStatusEmbed = new MessageEmbed()
+    let scoreEmbed = new MessageEmbed()
         .setColor(embedColor)
         .setTitle("Game Status")
         .setURL('https://hvz.rit.edu/')
@@ -105,5 +105,23 @@ export async function createScoreboard(msg) {
         .setDescription(embedDescription)
         .setFooter(embedFooter)
         .setTimestamp()
-    msg.reply({ embeds: [playerStatusEmbed] });
+    msg.edit("​​​​");
+    msg.edit({ embeds: [scoreEmbed]})
 }
+export async function createScoreboard(msg) {
+    let responder = await msg.channel.send("Setting up...");
+    await saveScoreboard(responder);
+    let score = await getJSON("https://hvz.rit.edu/api/v2/status/score");
+    let time = await getJSON("https://hvz.rit.edu/api/v2/status/dates");
+    setScoreboard(responder,time,score);
+}
+
+export async function updateBoards(client){
+    let boards = await syncScoreboards(client);
+    let score = await getJSON("https://hvz.rit.edu/api/v2/status/score");
+    let time = await getJSON("https://hvz.rit.edu/api/v2/status/dates");
+    boards.forEach(function(x){
+       setScoreboard(x,time,score);
+       updateAllRolesSilent(x);
+    })
+ }
