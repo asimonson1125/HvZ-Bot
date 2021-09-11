@@ -1,5 +1,5 @@
 import { getJSON } from './APIhandler.js'
-import { getPlayer, saveScoreboard } from './DB.js';
+import { getPlayer, saveScoreboard, syncScoreboards, updateAllRolesSilent } from './DB.js';
 import { MessageEmbed } from 'discord.js';
 // import { playerStatus } from './asyncHandler.js'
 
@@ -105,11 +105,12 @@ export async function createScoreboard(msg) {
     setScoreboard(responder,time,score);
 }
 
-export async function updateBoards(){
+export async function updateBoards(client){
     let boards = await syncScoreboards(client);
     let score = await getJSON("https://hvz.rit.edu/api/v2/status/score");
     let time = await getJSON("https://hvz.rit.edu/api/v2/status/dates");
     boards.forEach(function(x){
        setScoreboard(x,time,score);
+       updateAllRolesSilent(x);
     })
  }

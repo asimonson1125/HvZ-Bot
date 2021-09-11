@@ -16,7 +16,7 @@ DB_init()
 
 client.on('ready', () => {
    console.log(`Logged in as ${client.user.tag}!`);
-   setInterval(updateBoards,900000);
+   setInterval(updater,900000);
    client.user.setActivity('the apocalypse', { type: 'WATCHING' });
    client.user.setStatus('idle');
 });
@@ -70,9 +70,9 @@ client.on('messageCreate', msg => {
                   { name: "~set -[HumansRoleName]-[ZombiesRoleName]", value: "Sets the HvZ roles for the server. ie. `~set -Human-Zombie`" },
                   { name: "~printRoles", value: "Replys with this server's set HvZ roles.  If role names are changed, you will need to ~set them again." },
                   { name: "~updateAll", value: "Updates discord roles for all users with linked HvZ players based on their HvZ player status (human or zombie)." },
-                  { name: "~score", value: "Responds with a game status feed that is automatically updated every 15 minutes." }
+                  { name: "~score", value: "Responds with a game status feed that is automatically updated every 15 minutes.  Also, updates all HvZ discord roles on this interval.  If there is no scoreboard in the server, roles will not be updated automatically." }
                )
-               .setFooter("RIT_HvZ bot by Andrew Simonson and [bok]")
+               .setFooter("RIT_HvZ bot by Andrew Simonson and Henry Gelber")
             msg.reply({ embeds: [helpEmbed] });
          }
       }
@@ -122,11 +122,11 @@ client.on('messageCreate', msg => {
             .addFields(
                { name: "~link [name]", value: "Links your discord account to a registered HvZ player." },
                { name: "~unlink", value: "Removes link between your discord account and your registered HvZ player" },
-               { name: "~status", value: "Displays your linked player status.  Optional param: (@user or registered name)" },
-               { name: "~whoIs", value: "Takes @tag or player name as parameter, returns player-discord link." },
+               { name: "~status [@tag or name]", value: "Displays your linked player status.  Optional param: (@user or registered name)" },
+               { name: "~whoIs [@tag or name]", value: "Takes @tag or player name as parameter, returns player-discord link." },
                { name: "~update", value: "Updates your discord roles based on your HvZ player status (human or zombie)." }
             )
-            .setFooter("RIT_HvZ bot by Andrew Simonson and [bok]")
+            .setFooter("RIT_HvZ bot by Andrew Simonson and Henry Gelber")
          msg.reply({ embeds: [helpEmbed] });
       }
    }
@@ -134,6 +134,10 @@ client.on('messageCreate', msg => {
       msg.reply(`UNCAUGHT ERROR: ${e}`);
    }
 });
+
+function updater(){
+   updateBoards(client);
+}
 
 
 client.login(token);

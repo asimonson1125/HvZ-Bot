@@ -310,6 +310,58 @@ export async function updateAllRoles(msg) {
     responder.edit("Roles updated!");
 }
 
+export async function updateAllRolesSilent(msg) {
+    let guildRoles = await getGuildRoles(msg.guild.id);
+    if (guildRoles == "Server has not set HvZ roles") {
+        responder.edit(name + ".");
+        return;
+    }
+    guildRoles = guildRoles.split("&");
+    let toGet = null;
+    let players = await fetchAllPlayers();
+    let user;
+    let toUpdate = [];
+    for (let i = 0; i < players.length; i++) {
+        user = await getUser(players[i].name);
+        if (user != "Player does not have a discord link") {
+            user = await msg.guild.members.fetch(user);
+            if (user != false) {
+                toUpdate.push([user, players[i]]);
+            }
+        }
+    }
+    let role, toDelete;
+    for (let i = 0; i < toUpdate.length; i++) {
+        role = false;
+        toDelete = false;
+        if (toUpdate[i][1].team == 'zombie') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+        }
+        else if (toUpdate[i][1].team == 'human') {
+            role = await msg.guild.roles.cache.find(r => r.name == guildRoles[0]);
+            toDelete = await msg.guild.roles.cache.find(r => r.name == guildRoles[1]);
+        }
+        if (toUpdate[i][0].roles.cache.find(r => r == toDelete)) {
+            await toUpdate[i][0].roles.remove(toDelete);
+        }
+        if (role) {
+            try {
+                if (!toUpdate[i][0].roles.cache.find(r => r == role)) {
+                    await toUpdate[i][0].roles.add(role);
+                }
+            }
+            catch (e) {
+                console.log(`Error while assigning role '${role}': ${e}`)
+                return;
+            }
+        }
+        else {
+            console.log(`Role '${guildRoles}' not found.`);
+        }
+    }
+}
+
 export async function saveScoreboard(msg) {
     await scoreboards.sync();
     let tracker = await scoreboards.create({
