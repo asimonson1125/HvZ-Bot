@@ -1,10 +1,11 @@
 import Sequelize from 'sequelize';
 import { SQLUser, SQLPass } from './auth.js'
 import { getJSON } from './APIhandler.js'
-import { fetchAllPlayers, playerStatus } from './asyncHandler.js';
+import { fetchAllPlayers, playerStatus, setScoreboard } from './asyncHandler.js';
 
 let accLink;
 let guilds;
+let scoreboards;
 
 export function DB_init() {
     const linkSequelize = new Sequelize('database', SQLUser, SQLPass, {
@@ -31,6 +32,20 @@ export function DB_init() {
     guilds = guildSequelize.define('accLink', {
         guildID: Sequelize.STRING,
         roles: Sequelize.STRING
+    });
+
+    const scoreSequelize = new Sequelize('database', SQLUser, SQLPass, {
+        host: 'localhost',
+        dialect: 'sqlite',
+        logging: false,
+        // SQLite only
+        storage: 'scoreboards.sqlite',
+    });
+
+    scoreboards = scoreSequelize.define('scoreboards', {
+        guildID: Sequelize.STRING,
+        channelID: Sequelize.STRING,
+        messageID: Sequelize.STRING
     });
 }
 
@@ -258,7 +273,7 @@ export async function updateAllRoles(msg) {
         if (user != "Player does not have a discord link") {
             user = await msg.guild.members.fetch(user);
             if (user != false) {
-                toUpdate.push([user,players[i]]);
+                toUpdate.push([user, players[i]]);
             }
         }
     }
@@ -293,4 +308,31 @@ export async function updateAllRoles(msg) {
         }
     }
     responder.edit("Roles updated!");
+}
+
+export async function saveScoreboard(msg) {
+    await scoreboards.sync();
+    let tracker = await scoreboards.create({
+        guildID: msg.guild.id,
+        channelID: msg.channel.id,
+        messageID: msg.id
+    });
+}
+
+export async function syncScoreboards(client) {
+    let msg, guild, channel;
+    let boards = [];
+    await scoreboards.sync();
+    let DBread = await scoreboards.findAll();
+    for (let i = 0; i < DBread.length; i++) {
+        guild = await client.guilds.cache.get(DBread[i].get('guildID'));
+        channel = await guild.channels.cache.get(DBread[i].get('channelID'));
+        try {
+            msg = await channel.messages.fetch(DBread[i].get('messageID'));
+        } catch (e) {
+            console.log("Invalid message id: " + DBread[i].get('messageID'));
+        }
+        boards.push(msg);
+    }
+    return(boards);
 }

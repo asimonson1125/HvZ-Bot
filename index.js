@@ -1,6 +1,6 @@
 import { token } from './auth.js'
-import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles, updateRole, updateAllRoles } from './DB.js';
-import { statusByDiscord, playerStatus, createScoreboard } from './asyncHandler.js'
+import { DB_init, whoIs, addLink, deleteLink, setRoles, printGuildRoles, updateRole, updateAllRoles, syncScoreboards } from './DB.js';
+import { statusByDiscord, playerStatus, createScoreboard, updateBoards } from './asyncHandler.js'
 import { Client, Intents, MessageEmbed } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 /* ------------------------------------------------------------
@@ -16,6 +16,7 @@ DB_init()
 
 client.on('ready', () => {
    console.log(`Logged in as ${client.user.tag}!`);
+   setInterval(updateBoards,900000);
    client.user.setActivity('the apocalypse', { type: 'WATCHING' });
    client.user.setStatus('idle');
 });
@@ -133,7 +134,6 @@ client.on('messageCreate', msg => {
       msg.reply(`UNCAUGHT ERROR: ${e}`);
    }
 });
-
 
 
 client.login(token);
