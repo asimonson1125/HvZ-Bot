@@ -214,7 +214,7 @@ export async function updateRole(msg, user) {
     }
     let guildRoles = await getGuildRoles(msg.guild.id);
     if (guildRoles == "Server has not set HvZ roles") {
-        responder.edit(name + ".");
+        responder.edit(guildRoles + ".");
         return;
     }
     guildRoles = guildRoles.split("&");
