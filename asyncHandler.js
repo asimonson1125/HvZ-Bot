@@ -87,7 +87,7 @@ function hexFromPercent(valNum) {
 
 export async function setScoreboard(msg,time,score){
     let endDate = new Date(time.end);
-    let embedFooter = `Ending on: ${endDate}`;
+    let embedFooter = `Ending on: ${endDate.toLocaleString('en-US', { timeZone: 'EST' })}`;
     let embedDescription = `Humans: ${score.humans}\nZombies: ${score.zombies}\n`;
     let humanPercentage = score.humans / (score.humans + score.zombies);
     let embedColor = `#${hexFromPercent(humanPercentage * 100)}${hexFromPercent((1 - humanPercentage) * 100)}00`

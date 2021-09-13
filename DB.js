@@ -383,6 +383,8 @@ export async function syncScoreboards(client) {
             msg = await channel.messages.fetch(DBread[i].get('messageID'));
         } catch (e) {
             console.log("Invalid message id: " + DBread[i].get('messageID'));
+            scoreboards.destroy({ where: { messageID: DBread[i].get('messageID') } });
+            console.log('deleted!')
         }
         boards.push(msg);
     }
