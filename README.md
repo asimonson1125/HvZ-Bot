@@ -3,24 +3,50 @@ Discord bot to handle [Rochester Institute of Technology's Humans vs Zombies](ht
 
 
 ## Uses:
-  - Link discord accounts to players in the game and view their status
+<details>
+  <summary>Link discord accounts to players in the game and view their status</summary>
 
 <sub>example players not affiliated with project or devs</sub>
+  
+  <img src="/images/identityTheft.png" width="300">
+<br />  
+  <img src="/images/status.png" width="300">
+</details>
 
-<img src="/images/identityTheft.png" width="300">
+<details>
+  <summary>Integrate with server-specific roles</summary>
 
-<img src="/images/status.png" width="300">
+<img src="/images/setRoles.png" width="600">
+  
+</details>
 
-  - Integrate with server-specific roles
+<details>
+  <summary>Update user roles based on in-game data</summary>
 
-<img src="/images/setRoles.png" width="300">
+<img src="/images/updateRole.gif" width="450">
+</details>
 
-  - Update user roles based on in-game data
+<details>
+  <summary>create scoreboards that automatically update every 15 minutes (Also updates user roles on this interval!)</summary>
 
-<img src="/images/updateRole.gif" width="300">
+<img src="/images/score.png" width="400">
+<br />
+<img src="/images/score2.png" width="400">
+  </details>
+  
+## Install
+Clone repository:  
+```git clone https://github.com/asimonson1125/HvZ-Bot```
 
-  - create [RIT HvZ](https://hvz.rit.edu) scoreboards that automatically update every 15 minutes (Also updates user roles on this interval!)
+Install dependencies:  
+```npm install```
 
-<img src="/images/score.png" width="300">
+Create `auth.js` with template:
+```js
+export const token = "BOT_TOKEN";
+export const SQLUser = "USER";
+export const SQLPass = "PASSWORD";
+```
 
-<img src="/images/score2.png" width="300">
+All done!  
+Run: `node index.js`
