@@ -386,7 +386,12 @@ export async function syncScoreboards(client) {
             scoreboards.destroy({ where: { messageID: DBread[i].get('messageID') } });
             console.log('deleted!')
         }
-        boards.push(msg);
+        if (msg == undefined) {
+            console.log(`msg id ${DBread[i].get('messageID')} is invalid`);
+        }
+        else {
+            boards.push(msg);
+        }
     }
-    return(boards);
+    return (boards);
 }

@@ -2,7 +2,7 @@
 Discord bot to handle [Rochester Institute of Technology's Humans vs Zombies](https://hvz.rit.edu) games
 
 
-## Uses:
+## Uses
 <details>
   <summary>Link discord accounts to players in the game and view their status</summary>
 
@@ -32,6 +32,8 @@ Discord bot to handle [Rochester Institute of Technology's Humans vs Zombies](ht
 <img src="/images/score.png" width="400">
 <br />
 <img src="/images/score2.png" width="400">
+<br />
+<img scr="/images/score3.png" width="400">
   </details>
   
 ## Install
