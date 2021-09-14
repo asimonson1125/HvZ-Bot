@@ -33,7 +33,8 @@ Discord bot to handle [Rochester Institute of Technology's Humans vs Zombies](ht
 <br />
 <img src="/images/score2.png" width="400">
 <br />
-<img scr="/images/score3.png" width="400">
+<img scr="/images/score3.PNG" width="400">
+
   </details>
   
 ## Install
